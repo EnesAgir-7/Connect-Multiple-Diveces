@@ -48,6 +48,10 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
 
+  # Firebase
+  firebase_auth: ^4.3.0
+  cloud_firestore: ^4.4.5
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

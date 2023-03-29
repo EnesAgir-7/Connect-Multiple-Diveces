@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "472034749422",
+    "project_id": "connect-devices-e888c",
+    "storage_bucket": "connect-devices-e888c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472034749422:android:2383738f94d93bfad7bcff",
+        "android_client_info": {
+          "package_name": "com.example.new_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "472034749422-tsocvu312uava5i021vrcntmlioo03go.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGPNCS4wLIHYKRGyqglWDVxAjUk4FWFPE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "472034749422-tsocvu312uava5i021vrcntmlioo03go.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
