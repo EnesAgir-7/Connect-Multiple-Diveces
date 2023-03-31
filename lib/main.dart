@@ -29,23 +29,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
-class SessionBloc {
-  final CollectionReference sessionCollection = FirebaseFirestore.instance.collection('sessions');
-
-  Future<void> addSession(String moderatorID, String sessionID) async {
-    return sessionCollection.doc(sessionID).set({
-      'moderator': moderatorID,
-      'members': [],
-    });
-  }
-
-  Future<void> removeSession(String sessionID) async {
-    return sessionCollection.doc(sessionID).delete();
-  }
-
-  Stream<QuerySnapshot> getSessions() {
-    return sessionCollection.snapshots();
-  }
-}
