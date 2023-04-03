@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:new_app/page/home.dart';
 
 class ParticipatingPage extends StatelessWidget {
-  final String sessionId;
+  final String sessionID;
 
-  const ParticipatingPage({required this.sessionId});
+  const ParticipatingPage({required this.sessionID});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class ParticipatingPage extends StatelessWidget {
         title: Text('Participating Page'),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('sessions').doc(sessionId).snapshots(),
+        stream: FirebaseFirestore.instance.collection('sessions').doc(sessionID).snapshots(),
         builder: (context, AsyncSnapshot snapshot) {
           if (!snapshot.hasData) {
             return Center(child: CircularProgressIndicator());
@@ -24,9 +24,9 @@ class ParticipatingPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Session ID: ${session.sessionId}'),
+              Text('Session ID: ${session.sessionID}'),
               Text('Moderator: ${session.moderator}'),
-              Text('Members: ${session.members.join(', ')}'),
+              // Text('Members: ${session.members.join(', ')}'),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text('Leave Session'),

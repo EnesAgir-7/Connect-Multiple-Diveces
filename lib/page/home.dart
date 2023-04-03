@@ -30,25 +30,35 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _createSession() async {
     // Uniq ID for the session
-    final String sessionId = _db.collection('sessions').doc().id;
+    final String sessionID = _db.collection('sessions').doc().id;
     print("--------------------");
-    print(sessionId);
-    await _db.collection('sessions').doc(sessionId).set({
+    print(sessionID);
+    await _db.collection('sessions').doc(sessionID).set({
       'moderator': _currentUser.email,
       'members': [_currentUser.email],
     });
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ModeratingPage(
-          sessionId: sessionId,
-          sessionID: '',
+          sessionID: sessionID,
         ),
       ),
     );
   }
 
-  Future<void> _joinSession(String sessionId) async {
-    final DocumentSnapshot<Map<String, dynamic>> session = await _db.collection('sessions').doc(sessionId).get();
+  // void _createSession(BuildContext context) async {
+  //   await widget.sessionBloc.addSession(moderatorIDController.text, sessionIDController.text);
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => ModeratingPage(
+  //         sessionID: sessionIDController.text,
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Future<void> _joinSession(String sessionID) async {
+    final DocumentSnapshot<Map<String, dynamic>> session = await _db.collection('sessions').doc(sessionID).get();
 
     // Check if session exists
     if (!session.exists) {
@@ -64,7 +74,7 @@ class _HomePageState extends State<HomePage> {
     // Check if user has already joined
     if (members != null && members.contains(_currentUser.email)) {
       Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ParticipatingPage(sessionId: sessionId),
+        builder: (_) => ParticipatingPage(sessionID: sessionID),
       ));
       return;
     }
@@ -73,10 +83,10 @@ class _HomePageState extends State<HomePage> {
     final Map<String, dynamic> updatedSession = {'members': members ?? [], 'moderator': moderator};
     (updatedSession['members'] as List<dynamic>).add(_currentUser.email);
 
-    await _db.collection('sessions').doc(sessionId).update(updatedSession);
+    await _db.collection('sessions').doc(sessionID).update(updatedSession);
 
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ParticipatingPage(sessionId: sessionId),
+      builder: (_) => ParticipatingPage(sessionID: sessionID),
     ));
   }
 
@@ -121,9 +131,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                     TextButton(
                       onPressed: () async {
-                        final String sessionId = _sessionController.text.trim();
+                        final String sessionID = _sessionController.text.trim();
                         Navigator.of(context).pop();
-                        await _joinSession(sessionId);
+                        await _joinSession(sessionID);
                       },
                       child: Text('Join'),
                     ),
@@ -140,12 +150,12 @@ class _HomePageState extends State<HomePage> {
 }
 
 class Session {
-  final String sessionId;
+  final String sessionID;
   final String moderator;
   final List<String> members;
 
   Session({
-    required this.sessionId,
+    required this.sessionID,
     required this.moderator,
     required this.members,
   });
@@ -153,7 +163,7 @@ class Session {
   factory Session.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>;
     return Session(
-      sessionId: snapshot.id,
+      sessionID: snapshot.id,
       moderator: data['moderator'],
       members: List<String>.from(data['members']),
     );

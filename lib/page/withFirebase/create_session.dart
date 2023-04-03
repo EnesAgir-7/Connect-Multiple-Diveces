@@ -2,50 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:new_app/page/home.dart';
 import 'package:new_app/page/withFirebase/moderating.dart';
 
-class CreateSessionPage extends StatefulWidget {
-  final SessionBloc sessionBloc;
+// class CreateSessionPage extends StatefulWidget {
+//   final SessionBloc sessionBloc;
+//   final String sessionID;
 
-  CreateSessionPage({required this.sessionBloc});
 
-  @override
-  _CreateSessionPageState createState() => _CreateSessionPageState();
-}
+//   CreateSessionPage({required this.sessionBloc, required this.sessionID});
 
-class _CreateSessionPageState extends State<CreateSessionPage> {
-  TextEditingController moderatorIDController = TextEditingController();
-  TextEditingController sessionIDController = TextEditingController();
+//   @override
+//   _CreateSessionPageState createState() => _CreateSessionPageState();
+// }
 
-  void _createSession(BuildContext context) async {
-    await widget.sessionBloc.addSession(moderatorIDController.text, sessionIDController.text);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ModeratingPage(
-          sessionID: sessionIDController.text,
-          sessionId: '',
-        ),
-      ),
-    );
-  }
+// class _CreateSessionPageState extends State<CreateSessionPage> {
+//   TextEditingController moderatorIDController = TextEditingController();
+//   TextEditingController sessionIDController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Create Session"),
-      ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(controller: moderatorIDController, decoration: InputDecoration(hintText: 'Enter moderator ID')),
-            TextField(controller: sessionIDController, decoration: InputDecoration(hintText: 'Enter session ID')),
-            ElevatedButton(onPressed: () => _createSession(context), child: Text('Create Session'))
-          ],
-        ),
-      ),
-    );
-  }
-}
+//   void _createSession(BuildContext context) async {
+//     await widget.sessionBloc.addSession(moderatorIDController.text, sessionIDController.text);
+//     Navigator.of(context).push(
+//       MaterialPageRoute(
+//         builder: (context) => ModeratingPage(
+//           sessionID: sessionIDController.text,
+//           // sessionID: widget.sessionID,
+//         ),
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text("Create Session"),
+//       ),
+//       body: Container(
+//         padding: EdgeInsets.all(20),
+//         child: Column(
+//           children: [
+//             TextField(controller: moderatorIDController, decoration: InputDecoration(hintText: 'Enter moderator ID')),
+//             TextField(controller: sessionIDController, decoration: InputDecoration(hintText: 'Enter session ID')),
+//             ElevatedButton(onPressed: () => _createSession(context), child: Text('Create Session'))
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class Session {
   String sessionID;

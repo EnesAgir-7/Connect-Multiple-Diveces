@@ -6,7 +6,7 @@ import 'package:new_app/page/home.dart';
 class ModeratingPage extends StatefulWidget {
   final String sessionID;
 
-  ModeratingPage({required this.sessionID, required String sessionId});
+  ModeratingPage({required this.sessionID});
 
   @override
   _ModeratingPageState createState() => _ModeratingPageState();
@@ -33,6 +33,8 @@ class _ModeratingPageState extends State<ModeratingPage> {
         }
         var sessions = snapshot.data?.docs ?? [];
         var currentSession = sessions.where((s) => s.id == widget.sessionID);
+        // var currentSession = sessions.firstWhere((s) => s.id == widget.sessionID);
+
         if (currentSession.isEmpty) {
           return Center(
             child: Text('Session not found'),
