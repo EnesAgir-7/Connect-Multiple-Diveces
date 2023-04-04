@@ -1,0 +1,17 @@
+{
+  "trigger": true,
+  "modules": [
+    "custom"
+  ],
+  "parentResource": "studyspacemobileappauth1",
+  "functionName": "studyspacemobileappauth1PreSignup",
+  "resourceName": "studyspacemobileappauth1PreSignup",
+  "parentStack": "auth",
+  "triggerEnvs": [],
+  "triggerDir": "C:\\snapshot\\repo\\build\\node_modules\\@aws-amplify\\amplify-category-auth\\provider-utils\\awscloudformation\\triggers\\PreSignup",
+  "triggerTemplate": "PreSignup.json.ejs",
+  "triggerEventPath": "PreSignup.event.json",
+  "roleName": "studyspacemobileappauth1PreSignup",
+  "skipEdit": true,
+  "enableCors": false
+}

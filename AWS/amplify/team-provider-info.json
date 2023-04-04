@@ -9,12 +9,19 @@
       "UnauthRoleName": "amplify-connectdevices-staging-94311-unauthRole",
       "StackName": "amplify-connectdevices-staging-94311",
       "StackId": "arn:aws:cloudformation:eu-central-1:702163809751:stack/amplify-connectdevices-staging-94311/f2e4d010-d203-11ed-935d-027a13eb573c",
-      "AmplifyAppId": "d25zq969lrgrnw"
+      "AmplifyAppId": "d25zq969lrgrnw",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-connectdevices-staging-94311-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
       "auth": {
         "connectdevicesab40c2e3": {},
-        "connectdevices01177391": {}
+        "studyspacemobileappauth1": {}
+      },
+      "function": {
+        "studyspacemobileappauth1PreSignup": {
+          "deploymentBucketName": "amplify-connectdevices-staging-94311-deployment",
+          "s3Key": "amplify-builds/studyspacemobileappauth1PreSignup-775841752b347451416f-build.zip"
+        }
       }
     }
   }
