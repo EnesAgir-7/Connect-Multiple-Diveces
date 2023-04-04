@@ -46,17 +46,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // void _createSession(BuildContext context) async {
-  //   await widget.sessionBloc.addSession(moderatorIDController.text, sessionIDController.text);
-  //   Navigator.of(context).push(
-  //     MaterialPageRoute(
-  //       builder: (context) => ModeratingPage(
-  //         sessionID: sessionIDController.text,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Future<void> _joinSession(String sessionID) async {
     final DocumentSnapshot<Map<String, dynamic>> session = await _db.collection('sessions').doc(sessionID).get();
 
