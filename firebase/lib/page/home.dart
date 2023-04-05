@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:new_app/auth.dart';
-import 'package:new_app/page/withFirebase/create_session.dart';
 import 'package:new_app/page/withFirebase/moderating.dart';
 import 'package:new_app/page/wifi/wifi_connect.dart';
 import 'package:new_app/page/wifi/wifi_connect_page.dart';
