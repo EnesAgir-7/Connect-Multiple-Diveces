@@ -1,6 +1,8 @@
 {
   "version": "1",
   "cognitoConfig": {
+    "identityPoolName": "studyspacemobileappauth1_identitypool_d272ff21",
+    "allowUnauthenticatedIdentities": false,
     "resourceNameTruncated": "connec317dcca7",
     "userPoolName": "studyspace-mobile-app-users",
     "autoVerifiedAttributes": [
@@ -31,7 +33,7 @@
     "userpoolClientSetAttributes": true,
     "sharedId": "317dcca7",
     "resourceName": "studyspacemobileappauth1",
-    "authSelections": "userPoolOnly",
+    "authSelections": "identityPoolAndUserPool",
     "useDefault": "manual",
     "userPoolGroups": false,
     "adminQueries": false,
@@ -44,6 +46,34 @@
     "userPoolGroupList": [],
     "serviceName": "Cognito",
     "usernameCaseSensitive": false,
-    "useEnabledMfas": true
+    "useEnabledMfas": true,
+    "authRoleArn": {
+      "Fn::GetAtt": [
+        "AuthRole",
+        "Arn"
+      ]
+    },
+    "unauthRoleArn": {
+      "Fn::GetAtt": [
+        "UnauthRole",
+        "Arn"
+      ]
+    },
+    "breakCircularDependency": true,
+    "dependsOn": [
+      {
+        "category": "function",
+        "resourceName": "studyspacemobileappauth1PreSignup",
+        "triggerProvider": "Cognito",
+        "attributes": [
+          "Arn",
+          "Name"
+        ]
+      }
+    ],
+    "permissions": [],
+    "authTriggerConnections": [
+      "{\"triggerType\":\"PreSignUp\",\"lambdaFunctionName\":\"studyspacemobileappauth1PreSignup\"}"
+    ]
   }
 }
