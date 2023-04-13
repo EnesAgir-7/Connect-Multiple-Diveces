@@ -1,13 +1,16 @@
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_datastore/amplify_datastore.dart';
+// For timer
+import 'dart:async';
+// Amplify
 import 'package:flutter/material.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_datastore/amplify_datastore.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:new_app1/amplifyconfiguration.dart';
+
 import 'package:new_app1/pages/member.dart';
 import 'package:new_app1/pages/moderator.dart';
-import 'package:uuid/uuid.dart';
-import 'dart:math';
 import '../models//ModelProvider.dart';
+import 'dart:math';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,12 +23,21 @@ class _HomePageState extends State {
   String? _currentUser;
   List<Session> _sessions = [];
   final TextEditingController _nameController = TextEditingController();
+  Timer? _timer;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _getCurrentUser();
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      _getSessions();
+    });
+  }
+
+  void dispose() {
+    super.dispose();
+    _timer?.cancel;
   }
 
   void _getCurrentUser() async {
@@ -53,6 +65,10 @@ class _HomePageState extends State {
     }
   }
 
+  List<String> getParticipants(Session session) {
+    return List<String>.from(session.participants);
+  }
+
   void _createSession() async {
     try {
       print("--------------");
@@ -71,9 +87,7 @@ class _HomePageState extends State {
       }
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ModeratingPage(
-            sessionID: sessionID,
-          ),
+          builder: (_) => ModeratingPage(sessionID: sessionID),
         ),
       );
     } on Exception catch (e) {
@@ -81,6 +95,16 @@ class _HomePageState extends State {
     }
   }
 
+  void _deleteSession(Session session) async {
+    try {
+      await Amplify.DataStore.delete(session);
+      setState(() {
+        _sessions.remove(session);
+      });
+    } on DataStoreException catch (e) {
+      print('Error deleting session from DataStore: ${e.message}');
+    }
+  }
 
   void _joinSession(String sessionID) async {
     try {
@@ -92,6 +116,11 @@ class _HomePageState extends State {
       setState(() {
         _sessions[_sessions.indexOf(session)] = updatedSession;
       });
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ParticipatingPage(sessionID: sessionID),
+        ),
+      );
     } on Exception catch (e) {
       print('Error joining session: $e');
     }
@@ -132,68 +161,45 @@ class _HomePageState extends State {
             SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
-                itemCount: _sessions.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final session = _sessions[index];
-                  return ListTile(
-                    title: Text('Session ${session.id}'),
-                    subtitle: Text('Moderator: ${session.moderator}'),
-                    trailing: ElevatedButton(
-                      onPressed: () {
-                        _joinSession(session.id);
-                      },
-                      child: Text('Join'),
-                    ),
-                  );
-                },
-              ),
-            ),
+              itemCount: _sessions.length,
+              itemBuilder: (BuildContext context, int index) {
+                final session = _sessions[index];
+                final isModerator = session.moderator == _currentUser;
+                return ListTile(
+                  title: Text('Session ${session.id}'),
+                  subtitle: Text('Moderator: ${session.moderator}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            _joinSession(session.id);
+                          },
+                          child: Text('Join'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                          ),
+                        ),
+                      // SizedBox(width: 8),
+                      if (isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            _deleteSession(session);
+                          },
+                          child: Text('Delete'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            )),
           ],
         ),
       ),
     );
   }
 }
-
-// class Session extends Model {
-//   final String id;
-//   final String moderator;
-//   final List<String> participants;
-
-//   Session({required this.id, required this.moderator, required this.participants});
-
-//   static const classType = 'session';
-
-//   @override
-//   String getId() {
-//     return id;
-//   }
-
-//   factory Session.fromJson(Map<String, dynamic> json) {
-//     return Session(
-//       id: json['id'],
-//       moderator: json['moderator'],
-//       participants: List<String>.from(json['participants']),
-//     );
-//   }
-
-//   Session copyWith({
-//     String? id,
-//     String? moderator,
-//     List<String>? participants,
-//   }) {
-//     return Session(
-//       id: id ?? this.id,
-//       moderator: moderator ?? this.moderator,
-//       participants: participants ?? this.participants,
-//     );
-//   }
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'id': id,
-//       'moderator': moderator,
-//       'participants': participants,
-//     };
-//   }
-// }
