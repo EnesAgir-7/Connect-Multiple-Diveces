@@ -134,9 +134,9 @@ class _HomePageState extends State {
       participants.add(_currentUser!);
       final updatedSession = session.copyWith(participants: participants);
       await Amplify.DataStore.save(updatedSession);
-      // setState(() {
-      //   _sessions[_sessions.indexOf(session)] = updatedSession;
-      // });
+      setState(() {
+        _sessions[_sessions.indexOf(session)] = updatedSession;
+      });
       // ignore: use_build_context_synchronously
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -159,7 +159,13 @@ class _HomePageState extends State {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Current User: ${_currentUser}'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Current User: ${_currentUser}',
+                style: TextStyle(),
+              ),
+            ),
             ElevatedButton(
               onPressed: () async {
                 await Amplify.Auth.signOut();
