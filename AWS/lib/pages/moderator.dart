@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:new_app1/models/Session.dart';
 import 'package:new_app1/pages/home.dart';
 import 'package:flutter/material.dart';
 
 class ModeratingPage extends StatefulWidget {
-  const ModeratingPage({super.key, required String session});
+  final String sessionID;
+
+  const ModeratingPage({super.key, required this.sessionID});
 
   @override
   State<ModeratingPage> createState() => _ModeratingPageState();
@@ -12,33 +16,43 @@ class ModeratingPage extends StatefulWidget {
 
 class _ModeratingPageState extends State<ModeratingPage> {
   late Session _session;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _getSession();
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      // _getSession();
+      _refreshSession();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _getSession() async {
-    // try {
-    //   final sessions = await Amplify.DataStore.query(
-    //     Session.classType,
-    //     where: Session.ID.eq(widget.sessionID),
-    //   );
-    //   if (sessions.isNotEmpty) {
-    //     setState(() {
-    //       _session = sessions.first;
-    //     });
-    //   }
-    // } on DataStoreException catch (e) {
-    //   print('Error getting session from DataStore: ${e.message}');
-    // }
+    try {
+      final sessions = await Amplify.DataStore.query(
+        Session.classType,
+        where: Session.ID.eq(widget.sessionID),
+      );
+      if (sessions.isNotEmpty) {
+        setState(() {
+          _session = sessions.first;
+        });
+      }
+    } on DataStoreException catch (e) {
+      print('Error getting session from DataStore: ${e.message}');
+    }
   }
 
   void _deleteSession(Session session) async {
     try {
-      //await Amplify.DataStore.delete(session);
-      setState(() {});
+      await Amplify.DataStore.delete(session);
       Navigator.of(context).pop();
       print("go back");
     } on DataStoreException catch (e) {
@@ -46,11 +60,45 @@ class _ModeratingPageState extends State<ModeratingPage> {
     }
   }
 
+  void _refreshSession() async {
+    try {
+      final sessions = await Amplify.DataStore.query(
+        Session.classType,
+        where: Session.ID.eq(widget.sessionID),
+      );
+      if (sessions.isNotEmpty) {
+        setState(() {
+          _session = sessions.first;
+        });
+      }
+    } on DataStoreException catch (e) {
+      print('Error getting session from DataStore: ${e.message}');
+    }
+  }
+
+  void _removeParticipant(int index) async {
+    try {
+      // Convert fixed-length list to mutable list
+      List<String> mutableParticipants = List<String>.from(_session.participants);
+      mutableParticipants.removeAt(index);
+      // Update the session with the new participants list
+      final updatedSession = _session.copyWith(participants: mutableParticipants);
+      await Amplify.DataStore.save(updatedSession);
+      _refreshSession();
+    } on DataStoreException catch (e) {
+      print('Error removing participant from session: ${e.message}');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Moderator'),
+        title: Text(
+          'Moderator: ${_session.moderator}',
+          style: TextStyle(fontSize: 20),
+        ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -62,28 +110,65 @@ class _ModeratingPageState extends State<ModeratingPage> {
         child: Column(
           children: [
             const Text('This page Moderator Page'),
-            ElevatedButton(
-              onPressed: () {
-                _deleteSession(_session);
-              },
-              child: const Text('delete Session'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              child: Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _deleteSession(_session);
+                    },
+                    child: const Text('delete Session'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: _refreshSession,
+                    child: const Text('Refresh Participants'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
-            // Text(
-            //   'Participants (${_session.participants.length}):',
-            //   style: TextStyle(fontSize: 20),
-            // ),
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemCount: _session.participants.length,
-            //     itemBuilder: (BuildContext context, int index) {
-            //       return ListTile(
-            //         title: Text('Participant ${index + 1}'),
-            //         subtitle: Text(_session.participants[index]),
-            //       );
-            //     },
-            //   ),
-            // ),
+            Text(
+              'Participants (${_session.participants.length}):',
+              style: TextStyle(fontSize: 20),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _session.participants.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    // title: Text('Participant ${index + 1}'),
+                    subtitle: Text(
+                      _session.participants[index],
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            _removeParticipant(index);
+                          },
+                          child: Icon(Icons.close),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[700], // Set the button color to red
+                            shape: CircleBorder(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
