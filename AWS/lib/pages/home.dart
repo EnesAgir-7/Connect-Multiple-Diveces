@@ -20,6 +20,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State {
+  StreamSubscription<QuerySnapshot<Session>>? _stream;
+  // Initialize a boolean indicating if the sync process has completed
+  bool _isSynced = false;
+
   String? _currentUser;
   List<Session> _sessions = [];
   final TextEditingController _nameController = TextEditingController();
@@ -30,13 +34,15 @@ class _HomePageState extends State {
     // TODO: implement initState
     super.initState();
     _getCurrentUser();
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-      _getSessions();
-    });
+    _getSessions();
+    // _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+    //   _getSessions();
+    // });
   }
 
   void dispose() {
-    super.dispose();
+    _stream?.cancel();
+    // super.dispose();
     _timer?.cancel;
   }
 
@@ -60,6 +66,21 @@ class _HomePageState extends State {
       setState(() {
         _sessions = sessions;
       });
+      //! did not work
+      // _stream = Amplify.DataStore.observe(Session.classType).listen(
+      //   (event) {
+      //     print('Received event of type ' + event.eventType.toString());
+      //     print('Received post ' + event.item.toString());
+      //   },
+      // ) as StreamSubscription<QuerySnapshot<Session>>?;
+      _stream = Amplify.DataStore.observeQuery(
+        Session.classType,
+      ).listen((QuerySnapshot<Session> snapshot) {
+        setState(() {
+          _sessions = snapshot.items;
+          _isSynced = snapshot.isSynced;
+        });
+      });
     } on Exception catch (e) {
       print('Error getting sessions: $e');
     }
@@ -76,8 +97,8 @@ class _HomePageState extends State {
       print(sessionID);
       final session = Session(id: sessionID, moderator: _currentUser!, participants: []);
       try {
-        await Amplify.DataStore.start();
         await Amplify.DataStore.save(session);
+        await Amplify.DataStore.start();
         //! await Amplify.DataStore.save<Session>(session);
         setState(() {
           _sessions.add(session);
@@ -113,9 +134,10 @@ class _HomePageState extends State {
       participants.add(_currentUser!);
       final updatedSession = session.copyWith(participants: participants);
       await Amplify.DataStore.save(updatedSession);
-      setState(() {
-        _sessions[_sessions.indexOf(session)] = updatedSession;
-      });
+      // setState(() {
+      //   _sessions[_sessions.indexOf(session)] = updatedSession;
+      // });
+      // ignore: use_build_context_synchronously
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ParticipatingPage(sessionID: sessionID),
@@ -129,7 +151,7 @@ class _HomePageState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Connect Devices')),
+      appBar: AppBar(title: Text('Home Page')),
       body: Container(
         height: double.infinity,
         width: double.infinity,
@@ -143,6 +165,9 @@ class _HomePageState extends State {
                 await Amplify.Auth.signOut();
               },
               child: Text('Sign out'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -156,11 +181,18 @@ class _HomePageState extends State {
                 _getSessions();
               },
               child: Text('Get Session'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
             ),
-            Text('Sessions:'),
+            Padding(padding: EdgeInsets.symmetric(vertical: 5)),
+            Text(
+              'Sessions:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
+                child: ListView.builder(
               itemCount: _sessions.length,
               itemBuilder: (BuildContext context, int index) {
                 final session = _sessions[index];
@@ -181,7 +213,21 @@ class _HomePageState extends State {
                             backgroundColor: Colors.blueAccent,
                           ),
                         ),
-                      // SizedBox(width: 8),
+                      if (isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ModeratingPage(sessionID: session.id),
+                              ),
+                            );
+                          },
+                          child: Text('Manager Page'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                          ),
+                        ),
+                      SizedBox(width: 8),
                       if (isModerator)
                         ElevatedButton(
                           onPressed: () {
@@ -189,7 +235,7 @@ class _HomePageState extends State {
                           },
                           child: Text('Delete'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.redAccent,
                           ),
                         ),
                     ],
