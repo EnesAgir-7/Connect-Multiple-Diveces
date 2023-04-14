@@ -28,12 +28,6 @@ class _ModeratingPageState extends State<ModeratingPage> {
     _refreshSession();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   void _getSession() async {
     try {
       final sessions = await Amplify.DataStore.query(
@@ -68,7 +62,7 @@ class _ModeratingPageState extends State<ModeratingPage> {
       );
       if (sessions.isNotEmpty) {
         final session = sessions.first;
-        _stream?.cancel(); // cancel any existing subscription
+        // _stream?.cancel(); // cancel any existing subscription
         _stream = Amplify.DataStore.observeQuery(
           Session.classType,
           where: Session.ID.eq(widget.sessionID),
