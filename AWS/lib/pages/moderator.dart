@@ -15,6 +15,9 @@ class ModeratingPage extends StatefulWidget {
 }
 
 class _ModeratingPageState extends State<ModeratingPage> {
+  StreamSubscription<QuerySnapshot<Session>>? _stream;
+  List<Session> _sessions = [];
+  bool _isSynced = false;
   late Session _session;
   Timer? _timer;
 
@@ -22,10 +25,7 @@ class _ModeratingPageState extends State<ModeratingPage> {
   void initState() {
     super.initState();
     _getSession();
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-      // _getSession();
-      _refreshSession();
-    });
+    _refreshSession();
   }
 
   @override
@@ -67,8 +67,15 @@ class _ModeratingPageState extends State<ModeratingPage> {
         where: Session.ID.eq(widget.sessionID),
       );
       if (sessions.isNotEmpty) {
+        final session = sessions.first;
+        _stream?.cancel(); // cancel any existing subscription
+        _stream = Amplify.DataStore.observeQuery(
+          Session.classType,
+          where: Session.ID.eq(widget.sessionID),
+        ).listen((QuerySnapshot<Session> snapshot) {
         setState(() {
-          _session = sessions.first;
+            _session = snapshot.items.first;
+          });
         });
       }
     } on DataStoreException catch (e) {
@@ -121,6 +128,9 @@ class _ModeratingPageState extends State<ModeratingPage> {
                     child: const Text('delete Session'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -129,6 +139,12 @@ class _ModeratingPageState extends State<ModeratingPage> {
                   ElevatedButton(
                     onPressed: _refreshSession,
                     child: const Text('Refresh Participants'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.greenAccent[400],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
                 ],
               ),
