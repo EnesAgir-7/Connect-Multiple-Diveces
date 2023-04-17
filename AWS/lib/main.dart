@@ -55,6 +55,10 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Authenticator(
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.amber,
+        ),
         builder: Authenticator.builder(),
         home: amplifyConfig ? const HomePage() : Center(child: CircularProgressIndicator()),
       ),
