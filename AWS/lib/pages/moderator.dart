@@ -16,7 +16,6 @@ class ModeratingPage extends StatefulWidget {
 
 class _ModeratingPageState extends State<ModeratingPage> {
   StreamSubscription<QuerySnapshot<Session>>? _stream;
-  List<Session> _sessions = [];
   bool _isSynced = false;
   late Session _session;
   Timer? _timer;
@@ -110,7 +109,16 @@ class _ModeratingPageState extends State<ModeratingPage> {
       body: Center(
         child: Column(
           children: [
-            const Text('This page Moderator Page'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: const Text(
+                'This page Moderator Page',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Row(
