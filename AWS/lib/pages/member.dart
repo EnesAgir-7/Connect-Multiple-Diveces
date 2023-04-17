@@ -40,37 +40,38 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
         Session.classType,
         where: Session.ID.eq(widget.sessionID),
       ).listen((event) {
-        final updatedSession = event.items.firstWhere((s) => s.id == widget.sessionID);
-        setState(() {
-          _session = updatedSession;
-        });
-        if (!_session.participants.contains(authUser.username)) {
+        final updatedSessions = event.items;
+        if (updatedSessions.isEmpty) {
           Navigator.of(context).pop();
+        } else {
+          final updatedSession = updatedSessions.first;
+          setState(() {
+            _session = updatedSession;
+          });
+          if (!_session.participants.contains(authUser.username)) {
+            Navigator.of(context).pop();
+          }
         }
       });
       final sessions = await Amplify.DataStore.query(
         Session.classType,
         where: Session.ID.eq(widget.sessionID),
       );
-      if (sessions.isNotEmpty) {
-        final session = sessions.first;
+      if (sessions.isEmpty) {
+        Navigator.of(context).pop();
+      } else {
         setState(() {
-          _session = session;
+          _session = sessions.first;
         });
         if (!_session.participants.contains(authUser.username)) {
           Navigator.of(context).pop();
         }
-      } else {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => HomePage(),
-          ),
-        );
       }
     } on DataStoreException catch (e) {
       print('Error getting session from DataStore: ${e.message}');
     }
   }
+
 
   void _exitFromSession() async {
     try {
