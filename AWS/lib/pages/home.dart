@@ -1,4 +1,3 @@
-// For timer
 import 'dart:async';
 // Amplify
 import 'package:flutter/material.dart';
@@ -26,8 +25,9 @@ class _HomePageState extends State {
 
   String? _currentUser;
   List<Session> _sessions = [];
-  final TextEditingController _nameController = TextEditingController();
-  Timer? _timer;
+  List<ParticipantSession> _participantSession = [];
+
+  // Timer? _timer;
 
   @override
   void initState() {
@@ -42,8 +42,7 @@ class _HomePageState extends State {
 
   void dispose() {
     _stream?.cancel();
-    // super.dispose();
-    _timer?.cancel;
+    super.dispose();
   }
 
   void _getCurrentUser() async {
@@ -66,13 +65,6 @@ class _HomePageState extends State {
       setState(() {
         _sessions = sessions;
       });
-      //! did not work
-      // _stream = Amplify.DataStore.observe(Session.classType).listen(
-      //   (event) {
-      //     print('Received event of type ' + event.eventType.toString());
-      //     print('Received post ' + event.item.toString());
-      //   },
-      // ) as StreamSubscription<QuerySnapshot<Session>>?;
       _stream = Amplify.DataStore.observeQuery(
         Session.classType,
       ).listen((QuerySnapshot<Session> snapshot) {
@@ -86,15 +78,9 @@ class _HomePageState extends State {
     }
   }
 
-  List<String> getParticipants(Session session) {
-    return List<String>.from(session.participants);
-  }
-
   void _createSession() async {
     try {
-      print("--------------");
       final sessionID = Random().nextInt(1000000).toString().padLeft(6, '0');
-      print(sessionID);
       final session = Session(id: sessionID, moderator: _currentUser!, participants: []);
       try {
         await Amplify.DataStore.save(session);
@@ -130,19 +116,20 @@ class _HomePageState extends State {
   void _joinSession(String sessionID) async {
     try {
       final session = _sessions.firstWhere((s) => s.id == sessionID);
-      final participants = List<String>.from(session.participants);
-      participants.add(_currentUser!);
-      final updatedSession = session.copyWith(participants: participants);
-      await Amplify.DataStore.save(updatedSession);
-      setState(() {
-        _sessions[_sessions.indexOf(session)] = updatedSession;
-      });
-      // ignore: use_build_context_synchronously
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ParticipatingPage(sessionID: sessionID),
-        ),
-      );
+        final participants = List<String>.from(session.participants);
+        participants.add(_currentUser!);
+        final updatedSession = session.copyWith(participants: participants);
+        await Amplify.DataStore.save(updatedSession);
+        // setState(() {
+        //   _sessions[_sessions.indexOf(session)] = updatedSession;
+        // });
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ParticipatingPage(sessionID: sessionID),
+          ),
+        );
+      }
     } on Exception catch (e) {
       print('Error joining session: $e');
     }
@@ -151,54 +138,71 @@ class _HomePageState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Home Page')),
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Current User: ${_currentUser}',
-                style: TextStyle(),
-              ),
+      appBar: AppBar(title: const Text('Home Page')),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Text(
+                  'Current User: ${_currentUser}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Spacer(),
+                ElevatedButton(
+                  onPressed: () async {
+                    await Amplify.Auth.signOut();
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Sign out'),
+                      Padding(padding: EdgeInsets.only(left: 5)),
+                      Icon(Icons.power_settings_new_outlined),
+                    ],
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () async {
-                await Amplify.Auth.signOut();
-              },
-              child: Text('Sign out'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 60),
+            child: Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    _getSessions();
+                  },
+                  child: Text('Get Session'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                _createSession();
-              },
-              child: Text('Create Session'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _getSessions();
-              },
-              child: Text('Get Session'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
-            ),
-            Padding(padding: EdgeInsets.symmetric(vertical: 5)),
-            Text(
+          ),
+          Padding(padding: EdgeInsets.only(top: 5)),
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Text(
               'Sessions:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-            SizedBox(height: 10),
-            Expanded(
-                child: ListView.builder(
+          ),
+          SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
               itemCount: _sessions.length,
               itemBuilder: (BuildContext context, int index) {
                 final session = _sessions[index];
@@ -217,6 +221,9 @@ class _HomePageState extends State {
                           child: Text('Join'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                         ),
                       if (isModerator)
@@ -228,9 +235,12 @@ class _HomePageState extends State {
                               ),
                             );
                           },
-                          child: Text('Manager Page'),
+                          child: Text('Go Session'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
+                            backgroundColor: Colors.blueAccent[100],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                         ),
                       SizedBox(width: 8),
@@ -239,18 +249,46 @@ class _HomePageState extends State {
                           onPressed: () {
                             _deleteSession(session);
                           },
-                          child: Text('Delete'),
+                          child: Row(
+                            children: [
+                              Text('Delete'),
+                              Icon(Icons.delete),
+                            ],
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
                         ),
                     ],
                   ),
                 );
               },
-            )),
-          ],
-        ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                onPressed: _createSession,
+                icon: Icon(Icons.add_circle),
+                label: const Text(
+                  'Create Session',
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: Size(double.infinity, 50), // butonun genişliğini ekrana tamamen yaymak için
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
