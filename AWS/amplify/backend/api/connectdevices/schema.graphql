@@ -1,5 +1,14 @@
+type ParticipantSession @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  SessionID: Int!
+  moderator: String!
+  participant: String!
+  sets: [String]
+}
+
 type Session @model @auth(rules: [{allow: public}]) {
   id: ID!
   moderator: String!
   participants: [String]!
-} 
+}
+ 
