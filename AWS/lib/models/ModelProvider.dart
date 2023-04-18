@@ -20,15 +20,17 @@
 // ignore_for_file: public_member_api_docs, annotate_overrides, dead_code, dead_codepublic_member_api_docs, depend_on_referenced_packages, file_names, library_private_types_in_public_api, no_leading_underscores_for_library_prefixes, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, null_check_on_nullable_type_parameter, prefer_adjacent_string_concatenation, prefer_const_constructors, prefer_if_null_operators, prefer_interpolation_to_compose_strings, slash_for_doc_comments, sort_child_properties_last, unnecessary_const, unnecessary_constructor_name, unnecessary_late, unnecessary_new, unnecessary_null_aware_assignments, unnecessary_nullable_for_final_variable_declarations, unnecessary_string_interpolations, use_build_context_synchronously
 
 import 'package:amplify_core/amplify_core.dart';
+import 'ParticipantSession.dart';
 import 'Session.dart';
 
+export 'ParticipantSession.dart';
 export 'Session.dart';
 
 class ModelProvider implements ModelProviderInterface {
   @override
-  String version = "65fcc88d2c199a175b59c6722382e851";
+  String version = "42cd463586ea3d79125bb0b9565f7158";
   @override
-  List<ModelSchema> modelSchemas = [Session.schema];
+  List<ModelSchema> modelSchemas = [ParticipantSession.schema, Session.schema];
   static final ModelProvider _instance = ModelProvider();
   @override
   List<ModelSchema> customTypeSchemas = [];
@@ -37,6 +39,8 @@ class ModelProvider implements ModelProviderInterface {
   
   ModelType getModelTypeByModelName(String modelName) {
     switch(modelName) {
+      case "ParticipantSession":
+        return ParticipantSession.classType;
       case "Session":
         return Session.classType;
       default:
