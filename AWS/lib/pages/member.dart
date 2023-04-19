@@ -44,6 +44,50 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    if (sessionInitialized) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Member page"),
+        ),
+        body: Column(
+          children: [
+            Text(
+              'Moderator: ${_session.moderator}',
+              style: TextStyle(fontSize: 20),
+            ),
+            Expanded(child: Container()),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _exitFromSession();
+                  },
+                  icon: Icon(Icons.arrow_back_ios),
+                  label: const Text('Leave Session'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+  }
+
   Future<void> _getSession() async {
     try {
       final authUser = await Amplify.Auth.getCurrentUser();
@@ -95,53 +139,17 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
       );
       // final updatedParticipantSession = _participantSession.copyWith()
       await Amplify.DataStore.save(updatedSession);
-      Navigator.of(context).pop();
+      //! pop up is not working all time
+      // Navigator.of(context).pop();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const HomePage(),
+        ),
+      );
     } on DataStoreException catch (e) {
       print('Error exiting from session: ${e.message}');
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (sessionInitialized) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("Member page"),
-        ),
-        body: Column(
-          children: [
-            Text(
-              'Moderator: ${_session.moderator}',
-              style: TextStyle(fontSize: 20),
-            ),
-            Expanded(child: Container()),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    _exitFromSession();
-                  },
-                  icon: Icon(Icons.arrow_back_ios),
-                  label: const Text('Leave Session'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    minimumSize: Size(double.infinity, 50), // butonun genişliğini ekrana tamamen yaymak için
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-  }
+  
 }
