@@ -262,11 +262,7 @@ class _ModeratingPageState extends State<ModeratingPage> {
     try {
       final participantSessions = await Amplify.DataStore.query(
         ParticipantSession.classType,
-        where: ParticipantSession.PARTICIPANT.eq(participant),
-        // whereOr: [
-        //   ParticipantSession.SESSIONID.eq(_session.id),
-        //   ParticipantSession.SESSIONID.isNull(),
-        // ],
+        where: (ParticipantSession.PARTICIPANT.eq(participant).and(ParticipantSession.SESSIONID.eq(int.parse(_session.id)))),
       );
 
       if (participantSessions.isNotEmpty) {
@@ -276,14 +272,19 @@ class _ModeratingPageState extends State<ModeratingPage> {
         final updatedParticipantSession = participantSession.copyWith(sets: updatedSets);
         await Amplify.DataStore.save(updatedParticipantSession);
       } else {
-        final newParticipantSession =
-            ParticipantSession(participant: participant, SessionID: int.parse(_session.id), sets: [set], moderator: _session.moderator);
+        final newParticipantSession = ParticipantSession(
+          participant: participant,
+          SessionID: int.parse(_session.id),
+          sets: [set],
+          moderator: _session.moderator,
+        );
         await Amplify.DataStore.save(newParticipantSession);
       }
     } on DataStoreException catch (e) {
       print('Error sending sets to participant session: ${e.message}');
     }
   }
+
 
 
 
