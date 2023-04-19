@@ -112,7 +112,7 @@ class _ModeratingPageState extends State<ModeratingPage> {
                                           ElevatedButton(
                                             onPressed: () {
                                               // Do something with the sets
-                                              _sendSets(set, _session.participants[index]);
+                                              _sendSets(_session.participants[index], set);
                                               print(set);
                                               Navigator.pop(context);
                                             },
@@ -258,24 +258,34 @@ class _ModeratingPageState extends State<ModeratingPage> {
     }
   }
 
-  Future<void> _sendSets(String Participant, String set) async {
-    final participant = await Amplify.DataStore.query(
-      ParticipantSession.classType,
-      where: ParticipantSession.PARTICIPANT.eq(Participant),
-    );
+  Future<void> _sendSets(String participant, String set) async {
+    try {
+      final participantSessions = await Amplify.DataStore.query(
+        ParticipantSession.classType,
+        where: ParticipantSession.PARTICIPANT.eq(participant),
+        // whereOr: [
+        //   ParticipantSession.SESSIONID.eq(_session.id),
+        //   ParticipantSession.SESSIONID.isNull(),
+        // ],
+      );
 
-    final participantSession = await Amplify.DataStore.query(
-      ParticipantSession.classType,
-      where: ParticipantSession.SESSIONID.eq(_session.id),
-    );
-
-    final sets = List<String>.from(participantSession[0].sets as Iterable);
-    sets.add(set);
-
-    final updatedParticipantSession = participantSession[0].copyWith(sets: sets);
-
-    await Amplify.DataStore.save(updatedParticipantSession);
+      if (participantSessions.isNotEmpty) {
+        final participantSession = participantSessions.first;
+        final updatedSets = List<String>.from(participantSession.sets ?? []);
+        updatedSets.add(set);
+        final updatedParticipantSession = participantSession.copyWith(sets: updatedSets);
+        await Amplify.DataStore.save(updatedParticipantSession);
+      } else {
+        final newParticipantSession =
+            ParticipantSession(participant: participant, SessionID: int.parse(_session.id), sets: [set], moderator: _session.moderator);
+        await Amplify.DataStore.save(newParticipantSession);
+      }
+    } on DataStoreException catch (e) {
+      print('Error sending sets to participant session: ${e.message}');
+    }
   }
+
+
 
 
   
