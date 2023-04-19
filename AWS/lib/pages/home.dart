@@ -86,9 +86,9 @@ class _HomePageState extends State {
         await Amplify.DataStore.save(session);
         await Amplify.DataStore.start();
         //! await Amplify.DataStore.save<Session>(session);
-        setState(() {
-          _sessions.add(session);
-        });
+        // setState(() {
+        //   _sessions.add(session);
+        // });
       } on DataStoreException catch (e) {
         print('Error saving session to DataStore: ${e.message}');
       }
@@ -104,6 +104,16 @@ class _HomePageState extends State {
 
   void _deleteSession(Session session) async {
     try {
+      final sessionID = session.id;
+      // Delete all ParticipantSession objects with matching SessionID
+      final participantSessions = await Amplify.DataStore.query(
+        ParticipantSession.classType,
+        where: ParticipantSession.SESSIONID.eq(int.parse(sessionID)),
+      );
+      for (final participantSession in participantSessions) {
+        await Amplify.DataStore.delete(participantSession);
+      }
+      // Delete the Session object itself
       await Amplify.DataStore.delete(session);
       setState(() {
         _sessions.remove(session);
@@ -113,17 +123,41 @@ class _HomePageState extends State {
     }
   }
 
+
+
   void _joinSession(String sessionID) async {
     try {
       final session = _sessions.firstWhere((s) => s.id == sessionID);
+      final isUserParticipant = session.participants.contains(_currentUser!);
+
+      //! ParticipantSession
+      final participantSession = ParticipantSession(SessionID: int.parse(session.id), moderator: session.moderator, participant: _currentUser!);
+      final isParticipantSessionExists = await _isParticipantSessionExists(participantSession);
+
+      if (isUserParticipant && isParticipantSessionExists) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ParticipatingPage(sessionID: sessionID),
+          ),
+        );
+      } else {
         final participants = List<String>.from(session.participants);
         participants.add(_currentUser!);
         final updatedSession = session.copyWith(participants: participants);
         await Amplify.DataStore.save(updatedSession);
-        // setState(() {
-        //   _sessions[_sessions.indexOf(session)] = updatedSession;
-        // });
-        // ignore: use_build_context_synchronously
+
+        if (!isParticipantSessionExists) {
+          try {
+            await Amplify.DataStore.save(participantSession);
+            await Amplify.DataStore.start();
+            setState(() {
+              _participantSession.add(participantSession);
+            });
+          } on DataStoreException catch (e) {
+            print('Error saving session to DataStore: ${e.message}');
+          }
+        }
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ParticipatingPage(sessionID: sessionID),
@@ -132,6 +166,19 @@ class _HomePageState extends State {
       }
     } on Exception catch (e) {
       print('Error joining session: $e');
+    }
+  }
+
+  Future<bool> _isParticipantSessionExists(ParticipantSession participantSession) async {
+    try {
+      final result = await Amplify.DataStore.query(
+        ParticipantSession.classType,
+        where: ParticipantSession.SESSIONID.eq(participantSession.SessionID).and(ParticipantSession.PARTICIPANT.eq(participantSession.participant)),
+      );
+      return result.isNotEmpty;
+    } on DataStoreException catch (e) {
+      print('Error querying ParticipantSession from DataStore: ${e.message}');
+      return false;
     }
   }
 
