@@ -45,6 +45,166 @@ class _HomePageState extends State {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Home Page')),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Text(
+                  'Current User: ${_currentUser}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Spacer(),
+                ElevatedButton(
+                  onPressed: () async {
+                    await Amplify.Auth.signOut();
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Sign out'),
+                      Padding(padding: EdgeInsets.only(left: 5)),
+                      Icon(Icons.power_settings_new_outlined),
+                    ],
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 60),
+            child: Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    _getSessions();
+                  },
+                  child: Text('Get Session'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(padding: EdgeInsets.only(top: 5)),
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Text(
+              'Sessions:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ),
+          SizedBox(height: 10),
+          //^ Session List
+          Expanded(
+            child: ListView.builder(
+              itemCount: _sessions.length,
+              itemBuilder: (BuildContext context, int index) {
+                final session = _sessions[index];
+                final isModerator = session.moderator == _currentUser;
+                return ListTile(
+                  title: Text('Session ${session.id}'),
+                  subtitle: Text('Moderator: ${session.moderator}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            _joinSession(session.id);
+                          },
+                          child: Text('Join'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                      if (isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ModeratingPage(sessionID: session.id),
+                              ),
+                            );
+                          },
+                          child: Text('Go Session'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent[100],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                      SizedBox(width: 8),
+                      if (isModerator)
+                        ElevatedButton(
+                          onPressed: () {
+                            _deleteSession(session);
+                          },
+                          child: Row(
+                            children: [
+                              Text('Delete'),
+                              Icon(Icons.delete),
+                            ],
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          //^ Bottom Button
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                onPressed: _createSession,
+                icon: Icon(Icons.add_circle),
+                label: const Text(
+                  'Create Session',
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: Size(double.infinity, 50), // butonun genişliğini ekrana tamamen yaymak için
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _getCurrentUser() async {
     try {
       final authUser = await Amplify.Auth.getCurrentUser();
@@ -123,8 +283,6 @@ class _HomePageState extends State {
     }
   }
 
-
-
   void _joinSession(String sessionID) async {
     try {
       final session = _sessions.firstWhere((s) => s.id == sessionID);
@@ -182,161 +340,5 @@ class _HomePageState extends State {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Home Page')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Text(
-                  'Current User: ${_currentUser}',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Spacer(),
-                ElevatedButton(
-                  onPressed: () async {
-                    await Amplify.Auth.signOut();
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Sign out'),
-                      Padding(padding: EdgeInsets.only(left: 5)),
-                      Icon(Icons.power_settings_new_outlined),
-                    ],
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 60),
-            child: Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _getSessions();
-                  },
-                  child: Text('Get Session'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(padding: EdgeInsets.only(top: 5)),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              'Sessions:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-          ),
-          SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _sessions.length,
-              itemBuilder: (BuildContext context, int index) {
-                final session = _sessions[index];
-                final isModerator = session.moderator == _currentUser;
-                return ListTile(
-                  title: Text('Session ${session.id}'),
-                  subtitle: Text('Moderator: ${session.moderator}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!isModerator)
-                        ElevatedButton(
-                          onPressed: () {
-                            _joinSession(session.id);
-                          },
-                          child: Text('Join'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      if (isModerator)
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => ModeratingPage(sessionID: session.id),
-                              ),
-                            );
-                          },
-                          child: Text('Go Session'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent[100],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                      SizedBox(width: 8),
-                      if (isModerator)
-                        ElevatedButton(
-                          onPressed: () {
-                            _deleteSession(session);
-                          },
-                          child: Row(
-                            children: [
-                              Text('Delete'),
-                              Icon(Icons.delete),
-                            ],
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton.icon(
-                onPressed: _createSession,
-                icon: Icon(Icons.add_circle),
-                label: const Text(
-                  'Create Session',
-                  style: TextStyle(fontSize: 20),
-                ),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  minimumSize: Size(double.infinity, 50), // butonun genişliğini ekrana tamamen yaymak için
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  
 }
