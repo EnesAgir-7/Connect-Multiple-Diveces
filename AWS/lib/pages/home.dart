@@ -241,7 +241,7 @@ class _HomePageState extends State {
   void _createSession() async {
     try {
       final sessionID = Random().nextInt(1000000).toString().padLeft(6, '0');
-      final session = Session(id: sessionID, moderator: _currentUser!, participants: []);
+      final session = Session(id: sessionID, moderator: _currentUser!, participants: [], participantsAll: [], blackList: []);
       try {
         await Amplify.DataStore.save(session);
         await Amplify.DataStore.start();
