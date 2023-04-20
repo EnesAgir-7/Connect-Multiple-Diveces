@@ -31,6 +31,8 @@ class Session extends Model {
   final String id;
   final String? _moderator;
   final List<String>? _participants;
+  final List<String>? _participantsAll;
+  final List<String>? _BlackList;
   final TemporalDateTime? _createdAt;
   final TemporalDateTime? _updatedAt;
 
@@ -73,6 +75,32 @@ class Session extends Model {
     }
   }
   
+  List<String> get participantsAll {
+    try {
+      return _participantsAll!;
+    } catch(e) {
+      throw new AmplifyCodeGenModelException(
+          AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
+          recoverySuggestion:
+            AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
+          underlyingException: e.toString()
+          );
+    }
+  }
+  
+  List<String> get BlackList {
+    try {
+      return _BlackList!;
+    } catch(e) {
+      throw new AmplifyCodeGenModelException(
+          AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
+          recoverySuggestion:
+            AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
+          underlyingException: e.toString()
+          );
+    }
+  }
+  
   TemporalDateTime? get createdAt {
     return _createdAt;
   }
@@ -81,13 +109,15 @@ class Session extends Model {
     return _updatedAt;
   }
   
-  const Session._internal({required this.id, required moderator, required participants, createdAt, updatedAt}): _moderator = moderator, _participants = participants, _createdAt = createdAt, _updatedAt = updatedAt;
+  const Session._internal({required this.id, required moderator, required participants, required participantsAll, required BlackList, createdAt, updatedAt}): _moderator = moderator, _participants = participants, _participantsAll = participantsAll, _BlackList = BlackList, _createdAt = createdAt, _updatedAt = updatedAt;
   
-  factory Session({String? id, required String moderator, required List<String> participants}) {
+  factory Session({String? id, required String moderator, required List<String> participants, required List<String> participantsAll, required List<String> BlackList}) {
     return Session._internal(
       id: id == null ? UUID.getUUID() : id,
       moderator: moderator,
-      participants: participants != null ? List<String>.unmodifiable(participants) : participants);
+      participants: participants != null ? List<String>.unmodifiable(participants) : participants,
+      participantsAll: participantsAll != null ? List<String>.unmodifiable(participantsAll) : participantsAll,
+      BlackList: BlackList != null ? List<String>.unmodifiable(BlackList) : BlackList);
   }
   
   bool equals(Object other) {
@@ -100,7 +130,9 @@ class Session extends Model {
     return other is Session &&
       id == other.id &&
       _moderator == other._moderator &&
-      DeepCollectionEquality().equals(_participants, other._participants);
+      DeepCollectionEquality().equals(_participants, other._participants) &&
+      DeepCollectionEquality().equals(_participantsAll, other._participantsAll) &&
+      DeepCollectionEquality().equals(_BlackList, other._BlackList);
   }
   
   @override
@@ -114,6 +146,8 @@ class Session extends Model {
     buffer.write("id=" + "$id" + ", ");
     buffer.write("moderator=" + "$_moderator" + ", ");
     buffer.write("participants=" + (_participants != null ? _participants!.toString() : "null") + ", ");
+    buffer.write("participantsAll=" + (_participantsAll != null ? _participantsAll!.toString() : "null") + ", ");
+    buffer.write("BlackList=" + (_BlackList != null ? _BlackList!.toString() : "null") + ", ");
     buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
     buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null"));
     buffer.write("}");
@@ -121,32 +155,38 @@ class Session extends Model {
     return buffer.toString();
   }
   
-  Session copyWith({String? moderator, List<String>? participants}) {
+  Session copyWith({String? moderator, List<String>? participants, List<String>? participantsAll, List<String>? BlackList}) {
     return Session._internal(
       id: id,
       moderator: moderator ?? this.moderator,
-      participants: participants ?? this.participants);
+      participants: participants ?? this.participants,
+      participantsAll: participantsAll ?? this.participantsAll,
+      BlackList: BlackList ?? this.BlackList);
   }
   
   Session.fromJson(Map<String, dynamic> json)  
     : id = json['id'],
       _moderator = json['moderator'],
       _participants = json['participants']?.cast<String>(),
+      _participantsAll = json['participantsAll']?.cast<String>(),
+      _BlackList = json['BlackList']?.cast<String>(),
       _createdAt = json['createdAt'] != null ? TemporalDateTime.fromString(json['createdAt']) : null,
       _updatedAt = json['updatedAt'] != null ? TemporalDateTime.fromString(json['updatedAt']) : null;
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'moderator': _moderator, 'participants': _participants, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
+    'id': id, 'moderator': _moderator, 'participants': _participants, 'participantsAll': _participantsAll, 'BlackList': _BlackList, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
   };
   
   Map<String, Object?> toMap() => {
-    'id': id, 'moderator': _moderator, 'participants': _participants, 'createdAt': _createdAt, 'updatedAt': _updatedAt
+    'id': id, 'moderator': _moderator, 'participants': _participants, 'participantsAll': _participantsAll, 'BlackList': _BlackList, 'createdAt': _createdAt, 'updatedAt': _updatedAt
   };
 
   static final QueryModelIdentifier<SessionModelIdentifier> MODEL_IDENTIFIER = QueryModelIdentifier<SessionModelIdentifier>();
   static final QueryField ID = QueryField(fieldName: "id");
   static final QueryField MODERATOR = QueryField(fieldName: "moderator");
   static final QueryField PARTICIPANTS = QueryField(fieldName: "participants");
+  static final QueryField PARTICIPANTSALL = QueryField(fieldName: "participantsAll");
+  static final QueryField BLACKLIST = QueryField(fieldName: "BlackList");
   static var schema = Model.defineSchema(define: (ModelSchemaDefinition modelSchemaDefinition) {
     modelSchemaDefinition.name = "Session";
     modelSchemaDefinition.pluralName = "Sessions";
@@ -172,6 +212,20 @@ class Session extends Model {
     
     modelSchemaDefinition.addField(ModelFieldDefinition.field(
       key: Session.PARTICIPANTS,
+      isRequired: true,
+      isArray: true,
+      ofType: ModelFieldType(ModelFieldTypeEnum.collection, ofModelName: describeEnum(ModelFieldTypeEnum.string))
+    ));
+    
+    modelSchemaDefinition.addField(ModelFieldDefinition.field(
+      key: Session.PARTICIPANTSALL,
+      isRequired: true,
+      isArray: true,
+      ofType: ModelFieldType(ModelFieldTypeEnum.collection, ofModelName: describeEnum(ModelFieldTypeEnum.string))
+    ));
+    
+    modelSchemaDefinition.addField(ModelFieldDefinition.field(
+      key: Session.BLACKLIST,
       isRequired: true,
       isArray: true,
       ofType: ModelFieldType(ModelFieldTypeEnum.collection, ofModelName: describeEnum(ModelFieldTypeEnum.string))

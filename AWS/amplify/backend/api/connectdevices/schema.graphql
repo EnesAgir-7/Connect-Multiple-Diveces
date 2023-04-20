@@ -10,5 +10,7 @@ type Session @model @auth(rules: [{allow: public}]) {
   id: ID!
   moderator: String!
   participants: [String]!
+  participantsAll: [String]!
+  BlackList: [String]!
 }
  
