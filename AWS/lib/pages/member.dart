@@ -16,9 +16,12 @@ class ParticipatingPage extends StatefulWidget {
 
 class _ParticipatingPageState extends State<ParticipatingPage> {
   StreamSubscription<QuerySnapshot<Session>>? _stream;
+  StreamSubscription<QuerySnapshot<ParticipantSession>>? _stream2;
   bool _isSynced = false;
   List<Session> _sessions = [];
   List<ParticipantSession> _participantSession = [];
+  String? _currentUser;
+  List<String> _participantSets = [];
 
   // String? _currentUser;
   late Session _session;
@@ -33,12 +36,20 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _initSession());
     // _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-    //   _getSession();
     // });
+  }
+
+  @override
+  void dispose() {
+    _stream?.cancel();
+    _stream2?.cancel();
+    super.dispose();
   }
 
   void _initSession() async {
     await _getSession();
+    _getCurrentUser();
+    _getParticipantSets();
     setState(() {
       sessionInitialized = true;
     });
@@ -57,7 +68,21 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
               'Moderator: ${_session.moderator}',
               style: TextStyle(fontSize: 20),
             ),
-            Expanded(child: Container()),
+            ElevatedButton(
+              onPressed: () => _getParticipantSets(),
+              child: Text('Get Sets'),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _participantSets.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final _participantSetsList = _participantSets[index];
+                  return ListTile(
+                    title: Text(_participantSetsList),
+                  );
+                },
+              ),
+            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -85,6 +110,44 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
       return const Center(
         child: CircularProgressIndicator(),
       );
+    }
+  }
+
+  void _getParticipantSets() async {
+    try {
+      final participantSessions = await Amplify.DataStore.query(
+        ParticipantSession.classType,
+        where: ParticipantSession.PARTICIPANT.eq(_currentUser).and(ParticipantSession.SESSIONID.eq(widget.sessionID)),
+      );
+      _stream2 = Amplify.DataStore.observeQuery(ParticipantSession.classType,
+              where: ParticipantSession.SESSIONID.eq(widget.sessionID).and(ParticipantSession.PARTICIPANT.eq(_currentUser)))
+          .listen((QuerySnapshot<ParticipantSession> snapshot) {
+        setState(() {
+          _participantSession = snapshot.items;
+          _isSynced = snapshot.isSynced;
+        });
+      });
+      if (participantSessions.isNotEmpty) {
+        final participantSession = participantSessions.first;
+        setState(() {
+          _participantSets = List<String>.from(participantSession.sets ?? []);
+        });
+      }
+    } on DataStoreException catch (e) {
+      print('Error getting sets for participant session: ${e.message}');
+    }
+  }
+
+  void _getCurrentUser() async {
+    try {
+      final authUser = await Amplify.Auth.getCurrentUser();
+      print("User id: ${authUser.userId}, user name: ${authUser.username}");
+      print("--------------");
+      setState(() {
+        _currentUser = authUser.username;
+      });
+    } on Exception catch (e) {
+      print('Error getting current user: $e');
     }
   }
 
@@ -150,6 +213,4 @@ class _ParticipatingPageState extends State<ParticipatingPage> {
       print('Error exiting from session: ${e.message}');
     }
   }
-
-  
 }
