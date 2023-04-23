@@ -75,30 +75,12 @@ class Session extends Model {
     }
   }
   
-  List<String> get participantsAll {
-    try {
-      return _participantsAll!;
-    } catch(e) {
-      throw new AmplifyCodeGenModelException(
-          AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
-          recoverySuggestion:
-            AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
-          underlyingException: e.toString()
-          );
-    }
+  List<String>? get participantsAll {
+    return _participantsAll;
   }
   
-  List<String> get blackList {
-    try {
-      return _blackList!;
-    } catch(e) {
-      throw new AmplifyCodeGenModelException(
-          AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
-          recoverySuggestion:
-            AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
-          underlyingException: e.toString()
-          );
-    }
+  List<String>? get blackList {
+    return _blackList;
   }
   
   TemporalDateTime? get createdAt {
@@ -109,9 +91,9 @@ class Session extends Model {
     return _updatedAt;
   }
   
-  const Session._internal({required this.id, required moderator, required participants, required participantsAll, required blackList, createdAt, updatedAt}): _moderator = moderator, _participants = participants, _participantsAll = participantsAll, _blackList = blackList, _createdAt = createdAt, _updatedAt = updatedAt;
+  const Session._internal({required this.id, required moderator, required participants, participantsAll, blackList, createdAt, updatedAt}): _moderator = moderator, _participants = participants, _participantsAll = participantsAll, _blackList = blackList, _createdAt = createdAt, _updatedAt = updatedAt;
   
-  factory Session({String? id, required String moderator, required List<String> participants, required List<String> participantsAll, required List<String> blackList}) {
+  factory Session({String? id, required String moderator, required List<String> participants, List<String>? participantsAll, List<String>? blackList}) {
     return Session._internal(
       id: id == null ? UUID.getUUID() : id,
       moderator: moderator,
@@ -219,14 +201,14 @@ class Session extends Model {
     
     modelSchemaDefinition.addField(ModelFieldDefinition.field(
       key: Session.PARTICIPANTSALL,
-      isRequired: true,
+      isRequired: false,
       isArray: true,
       ofType: ModelFieldType(ModelFieldTypeEnum.collection, ofModelName: describeEnum(ModelFieldTypeEnum.string))
     ));
     
     modelSchemaDefinition.addField(ModelFieldDefinition.field(
       key: Session.BLACKLIST,
-      isRequired: true,
+      isRequired: false,
       isArray: true,
       ofType: ModelFieldType(ModelFieldTypeEnum.collection, ofModelName: describeEnum(ModelFieldTypeEnum.string))
     ));

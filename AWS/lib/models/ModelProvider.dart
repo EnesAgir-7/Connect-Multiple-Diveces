@@ -28,7 +28,7 @@ export 'Session.dart';
 
 class ModelProvider implements ModelProviderInterface {
   @override
-  String version = "e82f5606ede51c73bed22ddaf64eba9c";
+  String version = "4d3539311a7cf055b2230dea597461d8";
   @override
   List<ModelSchema> modelSchemas = [ParticipantSession.schema, Session.schema];
   static final ModelProvider _instance = ModelProvider();
