@@ -220,7 +220,7 @@ class _HomePageState extends State {
 
   void _getSessions() async {
     try {
-      final response = await Amplify.DataStore.query(Session.classType as ModelType<Model>);
+      final response = await Amplify.DataStore.query(Session.classType);
       List<Session> sessions = response.map((e) => Session.fromJson(e.toJson())).toList();
       setState(() {
         _sessions = sessions;
@@ -288,11 +288,32 @@ class _HomePageState extends State {
       final session = _sessions.firstWhere((s) => s.id == sessionID);
       final isUserParticipant = session.participants.contains(_currentUser!);
 
+      //! Check if current user is in the blacklist
+      final isUserBlacklisted = session.blackList != null && session.blackList!.contains(_currentUser!);
+
       //! ParticipantSession
       final participantSession = ParticipantSession(SessionID: int.parse(session.id), moderator: session.moderator, participant: _currentUser!);
       final isParticipantSessionExists = await _isParticipantSessionExists(participantSession);
 
-      if (isUserParticipant && isParticipantSessionExists) {
+      if (isUserBlacklisted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('You can not join this session.'),
+              content: Text("Go ask your teacher for forgiveness , to re-enter the session 😊"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } else if (isUserParticipant && isParticipantSessionExists) {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ParticipatingPage(sessionID: sessionID),
@@ -300,8 +321,10 @@ class _HomePageState extends State {
         );
       } else {
         final participants = List<String>.from(session.participants);
+        final participantsAll = List<String>.from(session.participantsAll ?? []);
         participants.add(_currentUser!);
-        final updatedSession = session.copyWith(participants: participants);
+        participantsAll.add(_currentUser!);
+        final updatedSession = session.copyWith(participants: participants, participantsAll: participantsAll);
         await Amplify.DataStore.save(updatedSession);
 
         if (!isParticipantSessionExists) {
@@ -326,6 +349,7 @@ class _HomePageState extends State {
       print('Error joining session: $e');
     }
   }
+
 
   Future<bool> _isParticipantSessionExists(ParticipantSession participantSession) async {
     try {
