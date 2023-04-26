@@ -244,13 +244,33 @@ class _ModeratingPageState extends State<ModeratingPage> {
     }
   }
 
+  // void _removeParticipant(int index) async {
+  //   try {
+  //     // Convert fixed-length list to mutable list
+  //     List<String> mutableParticipants = List<String>.from(_session.participants);
+  //     mutableParticipants.removeAt(index);
+  //     // Update the session with the new participants list
+  //     final updatedSession = _session.copyWith(participants: mutableParticipants);
+  //     await Amplify.DataStore.save(updatedSession);
+  //     _refreshSession();
+  //   } on DataStoreException catch (e) {
+  //     print('Error removing participant from session: ${e.message}');
+  //   }
+  // }
+
   void _removeParticipant(int index) async {
     try {
       // Convert fixed-length list to mutable list
       List<String> mutableParticipants = List<String>.from(_session.participants);
-      mutableParticipants.removeAt(index);
-      // Update the session with the new participants list
-      final updatedSession = _session.copyWith(participants: mutableParticipants);
+      // Get the participant to be removed and add them to the blacklist
+      String removedParticipant = mutableParticipants.removeAt(index);
+      List<String> mutableBlackList = List<String>.from(_session.blackList ?? []);
+      mutableBlackList.add(removedParticipant);
+      // Update the session with the new participants list and blacklist
+      final updatedSession = _session.copyWith(
+        participants: mutableParticipants,
+        blackList: mutableBlackList,
+      );
       await Amplify.DataStore.save(updatedSession);
       _refreshSession();
     } on DataStoreException catch (e) {
